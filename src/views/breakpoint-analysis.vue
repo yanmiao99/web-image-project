@@ -19,6 +19,7 @@
         </div>
         <el-table
             :data="tableData"
+            height="300"
             style="width: 100%">
           <el-table-column
               prop="index"
@@ -79,6 +80,36 @@ export default {
           index: 1,
           type: '事故',
           degree: '严重'
+        },
+        {
+          index: 2,
+          type: '事故2',
+          degree: '轻度'
+        },
+        {
+          index: 2,
+          type: '事故2',
+          degree: '轻度'
+        },
+        {
+          index: 2,
+          type: '事故2',
+          degree: '轻度'
+        },
+        {
+          index: 2,
+          type: '事故2',
+          degree: '轻度'
+        },
+        {
+          index: 2,
+          type: '事故2',
+          degree: '轻度'
+        },
+        {
+          index: 2,
+          type: '事故2',
+          degree: '轻度'
         },
         {
           index: 2,

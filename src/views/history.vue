@@ -61,58 +61,65 @@
   </div>
 </template>
 <script>
+import '../mock/index'
+
 export default {
   name: 'history',
   data() {
     return {
       tableData: [],
       currentPage: 1,// 当前页码
-      total: 20,// 总条数
+      total: 0,// 总条数
       pageSize: 7 // 每页的数据条数
     }
   },
   created() {
-    this.getlivestockInfo(1);  //因为刚加载显示第一页的数据，所以为1.
-    for (let i = 0; i < this.pageSize; i++) {
-      this.tableData.push({
-        index: i,
-        date: '2016-05-02',
-        longitude: "120°33'",
-        latitude: "30°33'",
-        type: ' 非机动车占用 ',
-        total: 121
-      })
-    }
+    this.getPageInfo(1)
   },
+
   methods: {
     handleClick(row) {
       console.log(row);
     },
     // 请求分页数据
-    getlivestockInfo(num1) {
-      let params = new URLSearchParams();
-      console.log(params);
-      params.append('pageNum', num1);
-      // params.append('total',this.tableData.total);
-      this.$axios.post('url', params)         //"url"处填写后台的接口
-          .then(response => {  // 请求成功
-            console.log('请求成功');
-            //因为后台帮助分页，所以后台需要将一些数据传到前端，当然就不止有数据了，例如：数据的总数等等
-            this.tableData = response.data.data;   //response.data.data代表从后台请求到的所有的数据
-            this.currentPage = num1;      //因为每次请求的页数不同，所以采用一个变量代替
-            this.pageSize = this.tableData.pageSize;
-            this.total = this.tableData.total;
-            console.log(this.tableData.list.length);   //我后台的数据中数据是放在数组list中
-          }).catch(error => {  // 请求失败
-        console.log('请求失败');
-        console.log(error);
+    getPageInfo(pageIndex) {
+      const url = '/list'
+      let params = {
+        pageIndex: pageIndex,
+        pageSize: this.pageSize,
+      }
+      this.$axios({
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        method: 'post',
+        url: url,
+        data: JSON.stringify(params)
+      }).then((res) => {
+        let data = res.data.data
+        this.tableData = []
+        data.rows.forEach(item => {
+          this.tableData.push({
+            index: item.index + 1,
+            date: item.date,
+            longitude: item.lon,
+            latitude: item.lat,
+            type: item.type,
+            total: item.count
+          })
+        })
+        this.currentPage = pageIndex
+        this.pageSize = data.pageSize
+        this.total = data.total;
+      }).catch(e => {
+        console.log(e);
       })
     },
     // 换页执行的代码
     handleCurrentChange(val) {
       console.log(`当前页: ${val}`);
       this.currentPage = val;
-      this.getlivestockInfo(val);
+      this.getPageInfo(val);
     },
     //每页条数改变时触发 选择一页显示多少行
     handleSizeChange(val) {
