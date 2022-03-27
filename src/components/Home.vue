@@ -12,8 +12,8 @@
             @select="handlerMenuSelect"
             active-text-color="#fff">
           <el-menu-item
-              :index="item.path"
               v-for="item in routerList"
+              :index="item.path"
               :key="item.name">
             <i :class="item.icon"></i>
             <span slot="title">{{ item.name }}</span>
@@ -71,10 +71,19 @@ export default {
       ]
     }
   },
+  created() {
+    try {
+      this.defaultActive = window.localStorage.getItem('menuActive')
+    }catch {
+      window.localStorage.setItem('menuActive', '/upload-image')
+    }
+  },
   methods: {
-    handlerMenuSelect(path) {
+    handlerMenuSelect(index, path) {
+      // 1. 存储下标
+      window.localStorage.setItem('menuActive', path)
       this.$router.push({
-        path
+        path: path.toString()
       })
     }
   }
