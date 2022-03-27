@@ -1,12 +1,12 @@
 import Mock from 'mockjs'
 
-
+// 随机数
 const Random = Mock.Random
-const pageList = []
 
+// 年月日
 function getNowFormatDate() {
     let date = new Date();
-    let seperator1 = "-";
+    let Separator = "-";
     let year = date.getFullYear();
     let month = date.getMonth() + 1;
     let strDate = date.getDate();
@@ -16,10 +16,13 @@ function getNowFormatDate() {
     if (strDate >= 0 && strDate <= 9) {
         strDate = "0" + strDate;
     }
-    return year + seperator1 + month + seperator1 + strDate;
+    return year + Separator + month + Separator + strDate;
 }
 
+// table 分页
+const pageList = []
 
+// 生成分页数据
 for (let i = 0; i < 1000; i++) {
     const page = {
         'id': i + 1,
@@ -27,10 +30,9 @@ for (let i = 0; i < 1000; i++) {
         'type': Random.cname(3),
         'lon': Random.integer(1, 100),
         'lat': Random.integer(1, 100),
-        'date':getNowFormatDate(),
-        'count': Random.integer(1,100)
+        'date': getNowFormatDate(),
+        'count': Random.integer(1, 100)
     }
-
     pageList.push(page)
 }
 

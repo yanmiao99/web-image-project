@@ -61,7 +61,7 @@
   </div>
 </template>
 <script>
-import '../mock/index'
+import '../mock/tablePaging.js'
 
 export default {
   name: 'history',
@@ -85,8 +85,8 @@ export default {
     getPageInfo(pageIndex) {
       const url = '/list'
       let params = {
-        pageIndex: pageIndex,
-        pageSize: this.pageSize,
+        pageIndex: pageIndex, // 当前页码
+        pageSize: this.pageSize, // 需要获取多少条
       }
       this.$axios({
         headers: {
