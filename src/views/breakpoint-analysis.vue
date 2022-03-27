@@ -19,7 +19,7 @@
         </div>
         <el-table
             :data="tableData"
-            height="300"
+            height="230"
             style="width: 100%">
           <el-table-column
               prop="index"
@@ -57,72 +57,65 @@
   </div>
 </template>
 <script>
+import "../mock/tableList.js"
+
 export default {
   data() {
     return {
-      imgList: [
-        {
-          imgSrc: 'https://cube.elemecdn.com/6/94/4d3ea53c084bad6931a56d5158a48jpeg.jpeg',
-          imgText: '原始图片',
-        },
-        {
-          imgSrc: 'https://cube.elemecdn.com/6/94/4d3ea53c084bad6931a56d5158a48jpeg.jpeg',
-          imgText: '图神经网络',
-        },
-      ],
+      imgList: [],
       imgIndex: 1,
       lonAndLat: {
         longitude: '120°3',
         latitude: '30°33',
       },
-      tableData: [
-        {
-          index: 1,
-          type: '事故',
-          degree: '严重'
-        },
-        {
-          index: 2,
-          type: '事故2',
-          degree: '轻度'
-        },
-        {
-          index: 2,
-          type: '事故2',
-          degree: '轻度'
-        },
-        {
-          index: 2,
-          type: '事故2',
-          degree: '轻度'
-        },
-        {
-          index: 2,
-          type: '事故2',
-          degree: '轻度'
-        },
-        {
-          index: 2,
-          type: '事故2',
-          degree: '轻度'
-        },
-        {
-          index: 2,
-          type: '事故2',
-          degree: '轻度'
-        },
-        {
-          index: 2,
-          type: '事故2',
-          degree: '轻度'
-        },
-      ],
+      tableData: [],
       rightCount: 2
     }
+  },
+  created() {
+    this.getData()
   },
   methods: {
     handleClick(row) {
       console.log(row);
+    },
+    getData() {
+      const url = '/tableList'
+      this.$axios({
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        method: 'get',
+        url: url,
+      }).then(res => {
+        let data = res.data
+        console.log(data);
+        this.rightCount = data.count // 断点总数
+        this.imgIndex = data.imgIndex // 图片编号
+
+        this.imgList = []
+        data.imgList.forEach(item => {  // 图片列表
+          this.imgList.push({
+            imgSrc: item.url,
+            imgText: item.name,
+          },)
+        })
+
+        this.lonAndLat = {  // 经纬度
+          longitude: data.lon,
+          latitude: data.lat,
+        }
+
+        // 表格
+        this.tableData = []
+        data.list.forEach(item => {
+          this.tableData.push({
+            index: item.id,
+            type: item.type,
+            degree: item.degree
+          },)
+        })
+      })
     }
   },
 

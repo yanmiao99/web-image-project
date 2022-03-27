@@ -37,7 +37,7 @@ for (let i = 0; i < 1000; i++) {
 }
 
 // 分页接口
-Mock.mock('/list', 'post', (params) => {
+Mock.mock('/tableList', 'post', (params) => {
     const info = JSON.parse(params.body)
     console.log(info)
     // const info = params.body

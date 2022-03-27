@@ -12,9 +12,13 @@
     </div>
     <div class="upload-main">
       <el-upload
+          ref="upload"
           class="upload-demo"
           drag
-          action="https://jsonplaceholder.typicode.com/posts/"
+          :before-upload="beforeAvatarUpload"
+          :http-request="uploadRequest"
+          :auto-upload="false"
+          action=''
           multiple>
         <i class="el-icon-upload"></i>
         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
@@ -22,22 +26,57 @@
       </el-upload>
     </div>
     <div class="upload-bottom">
-      <el-button type="primary" plain>开始识别</el-button>
+      <el-button type="primary" plain @click="submitUpload">开始识别</el-button>
     </div>
   </div>
 </template>
 <script>
 export default {
   name: 'upload-image',
-  data(){
-    return{
-      alertData:{
-        title:'注意事项',
-        text:'请检查您的图片,已确保其中包含盲道图像.请使用JPG形式附件'
+  data() {
+    return {
+      actionUploadUrl: 'api/admin/product/fileUpload',
+      alertData: {
+        title: '注意事项',
+        text: '请检查您的图片,已确保其中包含盲道图像.请使用JPG形式附件'
       }
     }
-  }
+  },
+  methods: {
+    uploadRequest(param){
+      let params = new FormData()
+      params.append('file', param.file)
+      let url = 'api/upload'
+      this.$axios({
+        headers: {
+          'Content-Type': 'multipart/form-data' //请求头
+        },
+        method: 'post',
+        url: url,
+        data: params
+      })
+      .then(res=>{
+        console.log(res);
+      })
+    },
+    // 点击上传图片
+    submitUpload() {
+      this.$refs.upload.submit();
+    },
+    // 处理上传格式
+    beforeAvatarUpload(file) {
+      const isJPG = file.type === 'image/jpeg';
+      const isLt2M = file.size / 1024 / 1024 < 2;
 
+      if (!isJPG) {
+        this.$message.error('上传头像图片只能是 JPG 格式!');
+      }
+      if (!isLt2M) {
+        this.$message.error('上传头像图片大小不能超过 2MB!');
+      }
+      return isJPG && isLt2M;
+    }
+  }
 }
 </script>
 
@@ -45,14 +84,17 @@ export default {
 .upload-image {
   .upload-main {
     margin: 20px 0;
-    ::v-deep .el-upload{
+
+    ::v-deep .el-upload {
       width: 100%;
-      .el-upload-dragger{
+
+      .el-upload-dragger {
         width: auto;
       }
     }
   }
-  .upload-bottom{
+
+  .upload-bottom {
     text-align: center;
   }
 }

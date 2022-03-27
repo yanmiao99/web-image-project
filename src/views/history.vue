@@ -42,7 +42,8 @@
             label="操作"
             width="100">
           <template slot-scope="scope">
-            <el-button @click="handleClick(scope.row)" type="text" size="small">清除记录</el-button>
+            <el-button @click="handleClickClear(scope.row)" type="text" style="color: #E47470" size="small">清除</el-button>
+            <el-button @click="handleClickDetails(scope.row)" type="text" size="small">详情</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -78,12 +79,21 @@ export default {
   },
 
   methods: {
-    handleClick(row) {
+    handleClickClear(row) {
       console.log(row);
+    },
+    handleClickDetails(row) {
+      console.log(row);
+      this.$router.push({
+        path:'/breakpoint-analysis',
+        query:{
+          id:'1'
+        }
+      })
     },
     // 请求分页数据
     getPageInfo(pageIndex) {
-      const url = '/list'
+      const url = '/tableList'
       let params = {
         pageIndex: pageIndex, // 当前页码
         pageSize: this.pageSize, // 需要获取多少条
