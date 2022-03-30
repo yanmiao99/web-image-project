@@ -35,7 +35,6 @@ export default {
   name: 'upload-image',
   data() {
     return {
-      actionUploadUrl: 'api/admin/product/fileUpload',
       alertData: {
         title: '注意事项',
         text: '请检查您的图片,已确保其中包含盲道图像.请使用JPG形式附件'
@@ -43,9 +42,9 @@ export default {
     }
   },
   methods: {
-    uploadRequest(param){
+    uploadRequest(param) {
       let params = new FormData()
-      params.append('file', param.file)
+      params.append('picture', param.file)
       let url = 'api/upload'
       this.$axios({
         headers: {
@@ -55,9 +54,17 @@ export default {
         url: url,
         data: params
       })
-      .then(res=>{
-        console.log(res);
-      })
+          .then(res => {
+            if (res.data.code !== "200") {
+              this.$message.error('上传失败');
+            } else {
+              this.$message.success(res.data.msg);
+            }
+          })
+          .catch(e => {
+            this.$message.error('上传失败');
+            console.log(e);
+          })
     },
     // 点击上传图片
     submitUpload() {

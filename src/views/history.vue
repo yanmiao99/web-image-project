@@ -81,6 +81,20 @@ export default {
   methods: {
     handleClickClear(row) {
       console.log(row);
+      const url = 'api/delete'
+      let params = {
+        pageSize: this.pageSize, // 需要获取多少条
+      }
+      this.$axios({
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        method: 'post',
+        url: url,
+        data: JSON.stringify(params)
+      }).then(res=>{
+
+      })
     },
     handleClickDetails(row) {
       console.log(row);
@@ -93,34 +107,45 @@ export default {
     },
     // 请求分页数据
     getPageInfo(pageIndex) {
-      const url = '/tableList'
+      const url = 'api/list'
+      // const url = '/tableList'
       let params = {
-        pageIndex: pageIndex, // 当前页码
+        page: pageIndex, // 当前页码
         pageSize: this.pageSize, // 需要获取多少条
       }
       this.$axios({
         headers: {
           'Content-Type': 'application/json'
         },
-        method: 'post',
+        method: 'get',
         url: url,
         data: JSON.stringify(params)
       }).then((res) => {
-        let data = res.data.data
-        this.tableData = []
-        data.rows.forEach(item => {
-          this.tableData.push({
-            index: item.index + 1,
-            date: item.date,
-            longitude: item.lon,
-            latitude: item.lat,
-            type: item.type,
-            total: item.count
+        console.log(res);
+        if(res.status !== 200){
+          this.$message({
+            message: '接口错误',
+            type: 'error'
+          });
+        }else{
+          let data = res.data
+          console.log(data);
+          this.tableData = []
+          data.forEach((item,index) => {
+            this.tableData.push({
+              index: index + 1,
+              date: item.picdate,
+              longitude: item.longtitude,
+              latitude: item.latitude,
+              type: item.pointtype,
+              total: item.pointnum,
+              id:item.picid
+            })
           })
-        })
-        this.currentPage = pageIndex
-        this.pageSize = data.pageSize
-        this.total = data.total;
+          this.currentPage = pageIndex // 让当前页面等于所选页面
+          this.pageSize = data.length // 让当前的数量等于数据库数量
+          this.total = data.length; // 让当前的总数等于数据库数量
+        }
       }).catch(e => {
         console.log(e);
       })
