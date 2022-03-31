@@ -1,6 +1,6 @@
 <template>
   <div class="breakpoint-analysis">
-    <div class="bara-wrapper">
+    <div class="bara-wrapper" v-loading="loading" element-loading-text="请在历史记录中的详情跳转进入~">
       <div class="wrapper-left">
         <div class="wrapper-img"
              v-for="item in imgList"
@@ -27,6 +27,7 @@
               width="100"
               align="center">
           </el-table-column>
+
           <el-table-column
               prop="type"
               label="断点类型"
@@ -44,13 +45,13 @@
               label="操作"
               width="100">
             <template slot-scope="scope">
-              <el-button @click="handleClick(scope.row)" type="danger" size="small" plain>删除</el-button>
+              <el-button @click="handlerDeleteItem(scope.row)" type="danger" size="small" plain>删除</el-button>
             </template>
           </el-table-column>
         </el-table>
         <div class="right-button">
           <p>断点总数 : <span>{{ rightCount }}</span></p>
-          <el-button type="primary" size="small" plain>导出表格</el-button>
+          <el-button type="primary" size="small" plain @click="handlerExportTable">导出表格</el-button>
         </div>
       </div>
     </div>
@@ -58,6 +59,7 @@
 </template>
 <script>
 import "../mock/tableList.js"
+import {exportExcel} from "../utils/toExcel";
 
 export default {
   data() {
@@ -69,18 +71,66 @@ export default {
         latitude: '30°33',
       },
       tableData: [],
-      rightCount: 2
+      rightCount: 2,
+      loading: false,
+      id: ''
     }
   },
   created() {
-    this.getData()
+    this.id = this.$route.query.id
+    if (this.id) {
+      this.getData(this.id)
+    } else {
+      this.loading = true
+    }
   },
   methods: {
-    handleClick(row) {
-      console.log(row);
+    // 导出表格
+    handlerExportTable() {
+      // 触发导出事件
+      let params = {
+        header: ['编号', '断点类型', '严重程度'],  // 表格头部的标题
+        filterVal: ['index', 'type', 'degree',], // 对应头部标题的字段
+        title: 'content_' + this.imgIndex,   // 导出文件的名字
+        tableData: this.tableData  // 需要导出的数据
+      }
+      exportExcel(params)
     },
-    getData() {
-      const url = '/tableList'
+
+    // 删除表格某一条
+    handlerDeleteItem(row) {
+      console.log(row);
+      const url = 'api/deletedetail'
+      let params = {
+        deleteDetailId: row.id,
+      }
+      this.$axios({
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        method: 'post',
+        url: url,
+        data: JSON.stringify(params)
+      }).then(res => {
+        console.log(res);
+        if (res.data.code !== '200') {
+          this.$message({
+            message: '删除失败',
+            type: 'error'
+          });
+        } else {
+          this.$message({
+            message: '删除成功',
+            type: 'success'
+          });
+          this.getData(this.id)
+        }
+      })
+    },
+
+    // 请求数据
+    getData(id) {
+      const url = `api/list/${id}`
       this.$axios({
         headers: {
           'Content-Type': 'application/json'
@@ -88,33 +138,44 @@ export default {
         method: 'get',
         url: url,
       }).then(res => {
-        let data = res.data
-        console.log(data);
-        this.rightCount = data.count // 断点总数
-        this.imgIndex = data.imgIndex // 图片编号
 
-        this.imgList = []
-        data.imgList.forEach(item => {  // 图片列表
-          this.imgList.push({
-            imgSrc: item.url,
-            imgText: item.name,
-          },)
-        })
+        if (res.data.code !== '200') {
+          this.$message({
+            message: '接口错误',
+            type: 'error'
+          });
+        } else {
+          let data = res.data
+          console.log(data);
+          this.rightCount = data.total // 断点总数
+          this.imgIndex = data.currentPic // 图片编号
 
-        this.lonAndLat = {  // 经纬度
-          longitude: data.lon,
-          latitude: data.lat,
+          this.imgList = []
+          data.data.listpic.forEach(item => {  // 图片列表
+            this.imgList.push({
+              imgSrc: item.piccontent,
+              imgText: item.picname,
+            },)
+          })
+
+          this.lonAndLat = {  // 经纬度
+            longitude: data.data.longtitude,
+            latitude: data.data.latitude,
+          }
+
+          // 表格
+          this.tableData = []
+          data.data.pointcontent.forEach(item => {
+            this.tableData.push({
+              index: item.pointid,
+              type: item.pointtype,
+              degree: item.serious
+            },)
+          })
+
+          this.loading = false
+
         }
-
-        // 表格
-        this.tableData = []
-        data.list.forEach(item => {
-          this.tableData.push({
-            index: item.id,
-            type: item.type,
-            degree: item.degree
-          },)
-        })
       })
     }
   },

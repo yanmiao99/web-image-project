@@ -78,6 +78,11 @@ export default {
       window.localStorage.setItem('menuActive', '/upload-image')
     }
   },
+  watch: {
+    '$route.path': function (newVal, oldVal) {
+      this.defaultActive = newVal
+    }
+  },
   methods: {
     handlerMenuSelect(index, path) {
       // 1. 存储下标

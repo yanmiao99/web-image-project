@@ -1,6 +1,6 @@
 <template>
   <div class="history">
-    <div class="history-wrapper">
+    <div class="history-wrapper" v-loading="loading" element-loading-text="数据加载中~">
       <el-table
           :data="tableData"
           border
@@ -42,7 +42,8 @@
             label="操作"
             width="100">
           <template slot-scope="scope">
-            <el-button @click="handleClickClear(scope.row)" type="text" style="color: #E47470" size="small">清除</el-button>
+            <el-button @click="handleClickClear(scope.row)" type="text" style="color: #E47470" size="small">清除
+            </el-button>
             <el-button @click="handleClickDetails(scope.row)" type="text" size="small">详情</el-button>
           </template>
         </el-table-column>
@@ -71,7 +72,8 @@ export default {
       tableData: [],
       currentPage: 1,// 当前页码
       total: 0,// 总条数
-      pageSize: 7 // 每页的数据条数
+      pageSize: 7, // 每页的数据条数
+      loading:false
     }
   },
   created() {
@@ -79,11 +81,12 @@ export default {
   },
 
   methods: {
+    // 点击删除某一条
     handleClickClear(row) {
       console.log(row);
       const url = 'api/delete'
       let params = {
-        pageSize: this.pageSize, // 需要获取多少条
+        deletepicid: row.id,
       }
       this.$axios({
         headers: {
@@ -92,73 +95,87 @@ export default {
         method: 'post',
         url: url,
         data: JSON.stringify(params)
-      }).then(res=>{
-
-      })
-    },
-    handleClickDetails(row) {
-      console.log(row);
-      this.$router.push({
-        path:'/breakpoint-analysis',
-        query:{
-          id:'1'
+      }).then(res => {
+        console.log(res);
+        if (res.data.code !== '200') {
+          this.$message({
+            message: '删除失败',
+            type: 'error'
+          });
+        } else {
+          this.$message({
+            message: '删除成功',
+            type: 'success'
+          });
+          this.getPageInfo(this.currentPage);
         }
       })
     },
+
+    // 点击查看详情
+    handleClickDetails(row) {
+      console.log(row);
+      window.localStorage.setItem('menuActive', '/breakpoint-analysis')
+      this.$router.push({
+        path: '/breakpoint-analysis',
+        query: {
+          id:row.id
+        }
+      })
+    },
+
     // 请求分页数据
     getPageInfo(pageIndex) {
-      const url = 'api/list'
-      // const url = '/tableList'
-      let params = {
-        page: pageIndex, // 当前页码
-        pageSize: this.pageSize, // 需要获取多少条
-      }
+      this.loading = true
+      const url = `api/list?page=${pageIndex}&pageSize=${this.pageSize}`
       this.$axios({
         headers: {
           'Content-Type': 'application/json'
         },
         method: 'get',
         url: url,
-        data: JSON.stringify(params)
       }).then((res) => {
-        console.log(res);
-        if(res.status !== 200){
+        if (res.data.code !== '200') {
           this.$message({
             message: '接口错误',
             type: 'error'
           });
-        }else{
+        } else {
           let data = res.data
-          console.log(data);
+          // console.log(data);
           this.tableData = []
-          data.forEach((item,index) => {
+          data.data.forEach(item => {
             this.tableData.push({
-              index: index + 1,
+              index: item.picid,
               date: item.picdate,
               longitude: item.longtitude,
               latitude: item.latitude,
               type: item.pointtype,
               total: item.pointnum,
-              id:item.picid
+              id: item.picid
             })
           })
-          this.currentPage = pageIndex // 让当前页面等于所选页面
-          this.pageSize = data.length // 让当前的数量等于数据库数量
-          this.total = data.length; // 让当前的总数等于数据库数量
+          this.currentPage = +data.currentPage// 让当前页面等于所选页面
+          this.pageSize = +data.pageSize // 让当前的页数等于数据库数量
+          this.total = +data.total; // 让当前的总数等于数据库数量
+
+          this.loading = false
         }
       }).catch(e => {
         console.log(e);
       })
     },
+
     // 换页执行的代码
     handleCurrentChange(val) {
-      console.log(`当前页: ${val}`);
+      // console.log(`当前页: ${val}`);
       this.currentPage = val;
       this.getPageInfo(val);
     },
+
     //每页条数改变时触发 选择一页显示多少行
     handleSizeChange(val) {
-      console.log(`每页 ${val} 条`);
+      // console.log(`每页 ${val} 条`);
       this.currentPage = 1;
       this.pageSize = val;
     },
